@@ -105,11 +105,11 @@ export const eventApi = {
 
   // Update event (for drag & drop or edit)
   updateEvent: async (id: string, updates: Partial<CalendarEvent>): Promise<void> => {
-    await api.patch(`/notion/events/${id}`, updates)
+    await api.patch(`/notion/events?id=${id}`, updates)
   },
 
   // Delete event
   deleteEvent: async (id: string): Promise<void> => {
-    await api.delete(`/notion/events/${id}`)
+    await api.delete(`/notion/events?id=${id}`)
   },
 }

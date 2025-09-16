@@ -71,19 +71,18 @@ const Calendar: React.FC = () => {
       
       if (!originalEvent) return
       
-      // Update event start date in Notion
-      const updatedEvent: CalendarEvent = {
-        ...originalEvent,
+      // 드래그&드롭 시에는 날짜만 업데이트
+      const updateData = {
         start: event.startStr.split('T')[0] // Extract date part only
       }
       
-      await eventApi.updateEvent(updatedEvent.id, updatedEvent)
+      await eventApi.updateEvent(originalEvent.id, updateData)
       
       // Update local state
       setEvents(prevEvents => 
         prevEvents.map(e => 
           e.id === event.id 
-            ? { ...e, start: updatedEvent.start }
+            ? { ...e, start: updateData.start }
             : e
         )
       )

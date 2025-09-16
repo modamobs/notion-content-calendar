@@ -26,21 +26,31 @@ export async function GET() {
     console.log('NOTION_API_KEY exists:', !!process.env.NOTION_API_KEY)
     console.log('NOTION_DATABASE_ID:', process.env.NOTION_DATABASE_ID)
     
-    // SDK v5에서는 request 메서드 사용
-    const response = await notion.request({
-      method: 'post',
-      path: `databases/${DATABASE_ID}/query`,
-      body: {
+    // SDK v2를 사용하여 직접 쿼리
+    const response = await fetch(`https://api.notion.com/v1/databases/${DATABASE_ID}/query`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.NOTION_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28'
+      },
+      body: JSON.stringify({
         sorts: [
           {
             property: "Schedule",
             direction: "ascending",
           },
         ],
-      },
-    }) as any
+      })
+    })
 
-    const events = response.results.map((page: any) => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    const events = data.results.map((page: any) => {
       const properties = page.properties
 
       // Extract title
@@ -214,11 +224,21 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    if (eventData.url !== undefined) {
+    if (eventData.url !== undefined && eventData.url !== '') {
       properties.URL = {
         url: eventData.url,
       }
     }
+
+    // 빈 properties 객체 확인
+    if (Object.keys(properties).length === 0) {
+      return setCorsHeaders(NextResponse.json(
+        { error: 'No properties to update' },
+        { status: 400 }
+      ))
+    }
+
+    console.log('Properties to update:', JSON.stringify(properties, null, 2))
 
     const response = await notion.pages.update({
       page_id: eventId,
