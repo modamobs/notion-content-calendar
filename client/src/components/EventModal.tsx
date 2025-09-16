@@ -64,7 +64,7 @@ const EventModal: React.FC<Props> = ({ isOpen, onClose, onSave, onDelete, event,
             <input className="w-full rounded border px-2 py-1" value={title} onChange={(e) => setTitle(e.target.value)} required />
           </div>
           <div>
-            <label className="mb-1 block text-sm">{schema?.properties.date?.label ?? "Start Date"}</label>
+            <label className="mb-1 block text-sm">{schema?.properties.schedule?.label ?? "Start Date"}</label>
             <input type="date" className="w-full rounded border px-2 py-1" value={date} onChange={(e) => setDate(e.target.value)} required />
           </div>
           {schema?.properties.status && (
