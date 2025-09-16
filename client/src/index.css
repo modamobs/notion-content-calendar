@@ -1,0 +1,353 @@
+/* Basic styles for the client app; keeps FullCalendar visible and a neutral base *//* Reset and base styles */
+
+:root { color-scheme: light dark; }* {
+
+html, body, #root { height: 100%; }  box-sizing: border-box;
+
+body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }  margin: 0;
+
+  padding: 0;
+
+/* FullCalendar tweaks */}
+
+.fc { font-size: 14px; }
+
+.fc .fc-toolbar-title { font-size: 1.25rem; }body {
+
+.fc .fc-button { padding: 0.35rem 0.6rem; }  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+
+  background-color: #f8fafc;
+  color: #1e293b;
+  line-height: 1.6;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 999999 !important;
+  padding: 16px;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 12px !important;
+  padding: 24px !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  position: relative !important;
+  z-index: 1000000 !important;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* Form styles */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Checkbox styles */
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.checkbox-input {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+/* Button styles */
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.btn-secondary {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+  background-color: #f9fafb;
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+/* Button container */
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+}
+
+/* Modal title */
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 20px;
+}
+
+/* FullCalendar 커스텀 스타일 */
+.fc {
+  background-color: white;
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border: 1px solid #ddd;
+}
+
+.fc-event {
+  cursor: pointer;
+}
+
+.fc-event:hover {
+  opacity: 0.8;
+}
+
+.fc-daygrid-event {
+  margin: 1px;
+  padding: 2px 4px;
+}
+
+/* 모달 스타일 */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 999999 !important;
+}
+
+.modal-content {
+  background: white !important;
+  border-radius: 8px !important;
+  padding: 24px !important;
+  width: 100% !important;
+  max-width: 500px !important;
+  margin: 16px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  position: relative !important;
+  z-index: 1000000 !important;
+}
+
+/* FullCalendar z-index 조정 */
+.fc {
+  position: relative;
+  z-index: 1;
+}
+
+/* body 스크롤 방지 (모달 열릴 때) */
+body.modal-open {
+  overflow: hidden;
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* FullCalendar custom styles */
+.fc {
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.fc-toolbar-title {
+  font-size: 1.5rem !important;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.fc-button-primary {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+.fc-button-primary:hover {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.fc-event {
+  border-radius: 4px;
+  border: none !important;
+  padding: 2px 4px;
+  font-size: 0.875rem;
+}
+
+.fc-event-title {
+  font-weight: 500;
+}
+
+.fc-daygrid-event {
+  margin: 1px 0;
+}
+
+/* Status-based event colors */
+.fc-event.status-todo {
+  background-color: #ef4444;
+  color: white;
+}
+
+.fc-event.status-in-progress {
+  background-color: #f59e0b;
+  color: white;
+}
+
+.fc-event.status-done {
+  background-color: #10b981;
+  color: white;
+}
+
+.fc-event.status-default {
+  background-color: #6b7280;
+  color: white;
+}

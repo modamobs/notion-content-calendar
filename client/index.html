@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notion Content Calendar</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+        line-height: 1.6;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #1f2937;
+      }
+
+      #calendar {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999999;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal.show {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        width: 100%;
+        max-width: 500px;
+        margin: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+
+      .form-group {
+        margin-bottom: 16px;
+      }
+
+      .form-label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 500;
+        color: #374151;
+        font-size: 14px;
+      }
+
+      .form-input, .form-select {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      .form-input:focus, .form-select:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      }
+
+      .button-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 12px;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+      }
+
+      .btn-primary {
+        background-color: #3b82f6;
+        color: white;
+      }
+
+      .btn-secondary {
+        background-color: white;
+        color: #374151;
+        border: 1px solid #d1d5db;
+      }
+
+      .btn-danger {
+        background-color: #dc2626;
+        color: white;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 20px;
+        color: #6b7280;
+      }
+
+      .error {
+        text-align: center;
+        padding: 20px;
+        color: #dc2626;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 6px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Notion Content Calendar</h1>
+      <div id="error-message" class="error" style="display: none;"></div>
+      <div id="loading" class="loading">Loading calendar...</div>
+      <div id='calendar'></div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="eventModal" class="modal">
+      <div class="modal-content">
+        <h2 id="modalTitle">Create Event</h2>
+        <form id="eventForm">
+          <div class="form-group">
+            <label class="form-label">Title *</label>
+            <input type="text" id="eventTitle" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Start Date *</label>
+            <input type="date" id="eventStart" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Date</label>
+            <input type="date" id="eventEnd" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select id="eventStatus" class="form-select">
+              <option value="todo">Todo</option>
+              <option value="in-progress">In Progress</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+          <div class="button-container">
+            <div>
+              <button type="button" id="deleteBtn" class="btn btn-danger" style="display: none;">Delete</button>
+            </div>
+            <div class="button-group">
+              <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+              <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      let calendar;
+      let currentEvent = null;
+
+      // API functions
+      async function fetchEvents() {
+        try {
+          const response = await fetch('/api/notion/events');
+          if (!response.ok) {
+            if (response.status === 503) {
+              showError('Server is not configured with Notion credentials yet. Set NOTION_API_KEY and NOTION_DATABASE_ID in server/.env, then restart.');
+              return [];
+            }
+            if (response.status === 404) {
+              showError('Endpoint not found. Please refresh the page or contact support.');
+              return [];
+            }
+            if (response.status >= 500) {
+              let msg = 'Failed to fetch events';
+              try { const data = await response.json(); if (data?.error) msg = data.error; } catch {}
+              showError(msg);
+              return [];
+            }
+            throw new Error('Failed to fetch events');
+          }
+          return await response.json();
+        } catch (error) {
+          console.error('Error fetching events:', error);
+          showError('Failed to load events. Please check your connection.');
+          return [];
+        }
+      }
+
+      async function createEvent(eventData) {
+        try {
+          const response = await fetch('/api/notion/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData)
+          });
+          if (!response.ok) {
+            if (response.status === 503) {
+              showError('Cannot create: Notion is not configured on the server yet. Please set NOTION_API_KEY and NOTION_DATABASE_ID.');
+              throw new Error('Notion not configured');
+            }
+            if (response.status === 404) {
+              showError('Create endpoint not found. Please refresh the page.');
+              throw new Error('Endpoint not found');
+            }
+            throw new Error('Failed to create event');
+          }
+          return await response.json();
+        } catch (error) {
+          console.error('Error creating event:', error);
+          showError('Failed to create event.');
+          throw error;
+        }
+      }
+
+      async function updateEvent(id, eventData) {
+        try {
+          const response = await fetch(`/api/notion/events/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(eventData)
+          });
+          if (!response.ok) {
+            if (response.status === 503) {
+              showError('Cannot update: Notion is not configured on the server yet.');
+              throw new Error('Notion not configured');
+            }
+            if (response.status === 404) {
+              showError('Update endpoint not found. Please refresh the page.');
+              throw new Error('Endpoint not found');
+            }
+            throw new Error('Failed to update event');
+          }
+          return await response.json();
+        } catch (error) {
+          console.error('Error updating event:', error);
+          showError('Failed to update event.');
+          throw error;
+        }
+      }
+
+      async function deleteEvent(id) {
+        try {
+          const response = await fetch(`/api/notion/events/${id}`, {
+            method: 'DELETE'
+          });
+          if (!response.ok) {
+            if (response.status === 503) {
+              showError('Cannot delete: Notion is not configured on the server yet.');
+              throw new Error('Notion not configured');
+            }
+            if (response.status === 404) {
+              showError('Delete endpoint not found. Please refresh the page.');
+              throw new Error('Endpoint not found');
+            }
+            throw new Error('Failed to delete event');
+          }
+        } catch (error) {
+          console.error('Error deleting event:', error);
+          showError('Failed to delete event.');
+          throw error;
+        }
+      }
+
+      // UI functions
+      function showError(message) {
+        const errorEl = document.getElementById('error-message');
+        errorEl.textContent = message;
+        errorEl.style.display = 'block';
+        setTimeout(() => {
+          errorEl.style.display = 'none';
+        }, 5000);
+      }
+
+      function showModal(event = null) {
+        currentEvent = event;
+        const modal = document.getElementById('eventModal');
+        const title = document.getElementById('modalTitle');
+        const form = document.getElementById('eventForm');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        const toDateInput = (val) => {
+          if (!val) return '';
+          try {
+            const d = val instanceof Date ? val : new Date(val);
+            if (isNaN(d.getTime())) return '';
+            return d.toISOString().slice(0, 10);
+          } catch {
+            return '';
+          }
+        };
+
+        if (event) {
+          title.textContent = 'Edit Event';
+          document.getElementById('eventTitle').value = event.title || '';
+          document.getElementById('eventStart').value = toDateInput(event.start);
+          document.getElementById('eventEnd').value = toDateInput(event.end);
+          const status = (event.extendedProps && event.extendedProps.status) || event.status || 'todo';
+          document.getElementById('eventStatus').value = status;
+          deleteBtn.style.display = 'block';
+          submitBtn.textContent = 'Update';
+        } else {
+          title.textContent = 'Create Event';
+          form.reset();
+          deleteBtn.style.display = 'none';
+          submitBtn.textContent = 'Create';
+        }
+
+        modal.classList.add('show');
+      }
+
+      function hideModal() {
+        document.getElementById('eventModal').classList.remove('show');
+        currentEvent = null;
+      }
+
+      // Initialize calendar
+      async function initCalendar() {
+        try {
+          const events = await fetchEvents();
+          document.getElementById('loading').style.display = 'none';
+
+          const calendarEl = document.getElementById('calendar');
+          calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+              left: 'prev,next today',
+              center: 'title',
+              right: 'dayGridMonth,timeGridWeek'
+            },
+            events: events.map(event => ({
+              id: event.id,
+              title: event.title,
+              start: event.start,
+              end: event.end,
+              backgroundColor: getEventColor(event.status),
+              extendedProps: {
+                status: event.status,
+                tags: event.tags,
+                url: event.url
+              }
+            })),
+            selectable: true,
+            editable: true,
+            eventClick: function(info) {
+              showModal(info.event);
+            },
+            dateClick: function(info) {
+              const newEvent = {
+                start: info.dateStr,
+                extendedProps: { status: 'todo' }
+              };
+              showModal(newEvent);
+            },
+            eventDrop: async function(info) {
+              try {
+                await updateEvent(info.event.id, {
+                  start: info.event.start.toISOString(),
+                  end: info.event.end?.toISOString()
+                });
+              } catch (error) {
+                info.revert();
+              }
+            }
+          });
+
+          calendar.render();
+        } catch (error) {
+          document.getElementById('loading').style.display = 'none';
+          showError('Failed to initialize calendar.');
+        }
+      }
+
+      function getEventColor(status) {
+        switch (status) {
+          case 'todo': return '#ef4444';
+          case 'in-progress': return '#f59e0b';
+          case 'done': return '#10b981';
+          default: return '#6b7280';
+        }
+      }
+
+      // Event handlers
+      document.getElementById('eventForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const eventData = {
+          title: document.getElementById('eventTitle').value,
+          start: document.getElementById('eventStart').value,
+          end: document.getElementById('eventEnd').value || null,
+          status: document.getElementById('eventStatus').value
+        };
+
+        try {
+          if (currentEvent && currentEvent.id) {
+            await updateEvent(currentEvent.id, eventData);
+            currentEvent.setProp('title', eventData.title);
+            currentEvent.setStart(eventData.start);
+            currentEvent.setEnd(eventData.end);
+            currentEvent.setProp('backgroundColor', getEventColor(eventData.status));
+          } else {
+            const newEvent = await createEvent(eventData);
+            calendar.addEvent({
+              id: newEvent.id,
+              title: newEvent.title,
+              start: newEvent.start,
+              end: newEvent.end,
+              backgroundColor: getEventColor(newEvent.status),
+              extendedProps: { status: newEvent.status }
+            });
+          }
+          hideModal();
+        } catch (error) {
+          // Error already handled in API functions
+        }
+      });
+
+      document.getElementById('cancelBtn').addEventListener('click', hideModal);
+
+      document.getElementById('deleteBtn').addEventListener('click', async () => {
+        if (currentEvent && currentEvent.id && confirm('Are you sure you want to delete this event?')) {
+          try {
+            await deleteEvent(currentEvent.id);
+            currentEvent.remove();
+            hideModal();
+          } catch (error) {
+            // Error already handled in API functions
+          }
+        }
+      });
+
+      document.getElementById('eventModal').addEventListener('click', (e) => {
+        if (e.target.id === 'eventModal') {
+          hideModal();
+        }
+      });
+
+      // Initialize app
+      initCalendar();
+    </script>
+  </body>
+</html>

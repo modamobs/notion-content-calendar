@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "name": "notion-content-calendar",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "env": {
+    "NOTION_API_KEY": "@notion-api-key",
+    "NOTION_DATABASE_ID": "@notion-database-id"
+  }
+}
