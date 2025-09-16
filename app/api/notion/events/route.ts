@@ -159,3 +159,121 @@ export async function POST(request: NextRequest) {
     ))
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    console.log('=== PATCH /api/notion/events ===')
+    const { searchParams } = new URL(request.url)
+    const eventId = searchParams.get('id')
+    
+    if (!eventId) {
+      return setCorsHeaders(NextResponse.json(
+        { error: 'Event ID is required' },
+        { status: 400 }
+      ))
+    }
+
+    const eventData = await request.json()
+    console.log('Event data to update:', eventData)
+    
+    // Build properties object dynamically
+    const properties: any = {}
+
+    if (eventData.title !== undefined) {
+      properties.Title = {
+        title: [
+          {
+            text: {
+              content: eventData.title,
+            },
+          },
+        ],
+      }
+    }
+
+    if (eventData.start !== undefined || eventData.end !== undefined) {
+      properties.Schedule = {
+        date: {
+          start: eventData.start,
+          end: eventData.end || null,
+        },
+      }
+    }
+
+    if (eventData.status !== undefined) {
+      properties.Status = {
+        select: {
+          name: eventData.status,
+        },
+      }
+    }
+
+    if (eventData.tags !== undefined) {
+      properties.Tags = {
+        multi_select: eventData.tags.map((tag: string) => ({ name: tag })),
+      }
+    }
+
+    if (eventData.url !== undefined) {
+      properties.URL = {
+        url: eventData.url,
+      }
+    }
+
+    const response = await notion.pages.update({
+      page_id: eventId,
+      properties,
+    })
+    
+    return setCorsHeaders(NextResponse.json({
+      id: response.id,
+      title: eventData.title,
+      start: eventData.start,
+      end: eventData.end,
+      status: eventData.status,
+      tags: eventData.tags || [],
+      url: eventData.url,
+      allDay: false
+    }))
+  } catch (error) {
+    console.error('Error updating event:', error)
+    return setCorsHeaders(NextResponse.json(
+      { error: 'Failed to update event', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    ))
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  // PUT은 전체 리소스 교체를 위해 PATCH와 동일하게 처리
+  return PATCH(request)
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    console.log('=== DELETE /api/notion/events ===')
+    const { searchParams } = new URL(request.url)
+    const eventId = searchParams.get('id')
+    
+    if (!eventId) {
+      return setCorsHeaders(NextResponse.json(
+        { error: 'Event ID is required' },
+        { status: 400 }
+      ))
+    }
+
+    // Notion에서는 페이지를 실제로 삭제하는 대신 archived로 설정
+    await notion.pages.update({
+      page_id: eventId,
+      archived: true,
+    })
+    
+    return setCorsHeaders(NextResponse.json({ success: true, id: eventId }))
+  } catch (error) {
+    console.error('Error deleting event:', error)
+    return setCorsHeaders(NextResponse.json(
+      { error: 'Failed to delete event', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    ))
+  }
+}
